@@ -8,6 +8,9 @@ from sklearn.metrics import accuracy_score, precision_score, recall_score
 import matplotlib.pyplot as plt
 import logging
 
+import os
+os.environ["CUDA_VISIBLE_DEVICES"] = "-1"  # ⬆️ 强制禁用 GPU
+
 # Set up logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -20,20 +23,22 @@ task = Task.init(
 
 # Connect parameters
 params = task.connect({
-    'step2_task_id': 'a76d8cec491f4d75ac38d9befe59df92',  # Will be filled by pipeline or manually
-    'processed_dataset_id': 'a76d8cec491f4d75ac38d9befe59df92',  # Alternative way to specify Step 2 task
+    'step2_task_id': '8bea97c54a3f44d2a30afb4319388612',
+    'processed_dataset_id': '8bea97c54a3f44d2a30afb4319388612',
     'batch_size': 32,
     'num_epochs': 10,
     'learning_rate': 0.001,
     'weight_decay': 1e-5,
     'dropout_rate': 0.5,
-    'test_queue': 'pipeline',
-    'device': 'cuda' if torch.cuda.is_available() else 'cpu'
+    'test_queue': 'pipeline'
 })
 
-# Execute remotely if a test_queue is specified (comment out if running locally)
-# if params.get('test_queue'):
-#     task.execute_remotely(queue_name=params['test_queue'])
+# ⬆️ 如果是本地执行，并指定了 queue，则自动推送到 agent
+if __name__ == "__main__" and params.get("test_queue") and Task.running_locally():
+    task.execute_remotely(queue_name=params["test_queue"])
+
+params['device'] = 'cuda' if torch.cuda.is_available() else 'cpu'
+device = torch.device(params['device'])
 
 # Get Step 2 task ID
 step2_task_id = params.get('step2_task_id') or params.get('processed_dataset_id')
