@@ -16,8 +16,8 @@ EXECUTION_QUEUE = "pipeline"
 def run_pipeline():
     # Connecting ClearML with the current pipeline
     pipe = PipelineController(
-        name="AI_Studio_Pipeline_Demo", 
-        project="AI_Studio_Demo", 
+        name="Pipeline demo", 
+        project="Agri-Pest-Detection", 
         version="0.0.1", 
         add_pipeline_tags=False
     )
@@ -29,8 +29,8 @@ def run_pipeline():
     # Add dataset creation step
     pipe.add_step(
         name="stage_data",
-        base_task_project="AI_Studio_Demo",
-        base_task_name="Pipeline step 1 dataset artifact",
+        base_task_project="Agri-Pest-Detection",
+        base_task_name="Step 1 - Load Uncompressed Pest Image Dataset",
         execution_queue=EXECUTION_QUEUE
     )
 
@@ -38,8 +38,8 @@ def run_pipeline():
     pipe.add_step(
         name="stage_process",
         parents=["stage_data"],
-        base_task_project="AI_Studio_Demo",
-        base_task_name="Pipeline step 2 process dataset",
+        base_task_project="Agri-Pest-Detection",
+        base_task_name="Step 2 - Preprocessing (artifact version)",
         execution_queue=EXECUTION_QUEUE,
         parameter_override={
             "General/dataset_task_id": "${stage_data.id}",
@@ -52,8 +52,8 @@ def run_pipeline():
     pipe.add_step(
         name="stage_train",
         parents=["stage_process"],
-        base_task_project="AI_Studio_Demo",
-        base_task_name="Pipeline step 3 train model",
+        base_task_project="Agri-Pest-Detection",
+        base_task_name="Step 3 - Model Training",
         execution_queue=EXECUTION_QUEUE,
         parameter_override={
             "General/processed_dataset_id": "${stage_process.parameters.General/processed_dataset_id}",
@@ -69,8 +69,8 @@ def run_pipeline():
     pipe.add_step(
         name="stage_hpo",
         parents=["stage_train", "stage_process", "stage_data"],
-        base_task_project="AI_Studio_Demo",
-        base_task_name="HPO: Train Model",
+        base_task_project="Agri-Pest-Detection",
+        base_task_name="Step 4 - HPO: Train Model",
         execution_queue=EXECUTION_QUEUE,
         parameter_override={
             "General/processed_dataset_id": "${stage_process.parameters.General/processed_dataset_id}",
@@ -87,8 +87,8 @@ def run_pipeline():
     pipe.add_step(
         name="stage_final_model",
         parents=["stage_hpo", "stage_process"],
-        base_task_project="AI_Studio_Demo",
-        base_task_name="Final Model Training",
+        base_task_project="Agri-Pest-Detection",
+        base_task_name="Step 5 - Final Model Training",
         execution_queue=EXECUTION_QUEUE,
         parameter_override={
             "General/processed_dataset_id": "${stage_process.parameters.General/processed_dataset_id}",
